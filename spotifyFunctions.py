@@ -1,14 +1,17 @@
 import sys
 import pprint
+import shelve
+import time
 
 import spotipy
 import spotipy.util as util
 
 spotifyObject = None
 username = ""
-
 iTunes2spotifyMapping = None
 
+uriCache = None
+uriFilename = ".uricache"
 
 def getUserToken():
     global username
@@ -38,9 +41,30 @@ def trackDict2SpotifySearchString(trackDict):
             s += spotifyKey + ':"' + trackDict[spotifyKey] + '" '
     return s
 
+# Check if we already have the URI.  When we don't retreive, cache, while
+# rate-limiting so Spotify doesn't get cranky
+def tracks2SpotifyURIs( tracks ):
+    global uriCache, uriFilename
+    if uriCache is None:
+        uriCache = shelve.open(uriFilename)
+
+    results = []
+    for t in tracks:
+        searchString = trackDict2SpotifySearchString(t)
+        if searchString in uriCache:
+            print "In cache - %s" % searchString
+            results.append(uriCache[searchString])
+        else:
+            print "Fetching - %s" % searchString
+            time.sleep(.5)
+            songURI = findSpotifyURI(t)
+            results.append(songURI)
+            uriCache[ searchString ] = songURI
+    uriCache.close()
+    return results
+
 
 def findSpotifyURI(trackDict):
-    # TODO: Some cachine here just in case it shits the bed mid-script
     searchString = trackDict2SpotifySearchString(trackDict)
     results = spotifyObject.search(q=searchString, type='track')
     return results['tracks']['items'][0]['uri']

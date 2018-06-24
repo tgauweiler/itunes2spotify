@@ -17,18 +17,20 @@ itunesFunctions.iTunes2spotifyMapping = iTunes2spotifyMapping
 
 def main():
     playlistName = itunesFunctions.iTunesXML2PlaylistName("liveinlondon.xml")
-    print playlistName
+    tracks = itunesFunctions.itunesXML2PythonDict("liveinlondon.xml")
+
+    token = spotifyFunctions.getUserToken();
+    songURIs = spotifyFunctions.tracks2SpotifyURIs(tracks)
+    pprint.pprint(songURIs)
+    # playlistId = spotifyFunctions.createPlaylist(playlistName)
+    # songID = spotifyFunctions.findSpotifyURI(testDict)
+    # spotifyFunctions.addSpotifyURIstoPlaylist(playlistId, [ songID ])
+
 
 def NOTmain():
-    token = spotifyFunctions.getUserToken();
-
     playlistName = "Test " + str(int(time.time()))
     print playlistName
-    playlistId = spotifyFunctions.createPlaylist(playlistName)
-
     testDict = {'album': 'Live In London', 'track': 'Dance Me To The End Of Love', 'artist': 'Leonard Cohen'}
-    songID = spotifyFunctions.findSpotifyURI(testDict)
-    spotifyFunctions.addSpotifyURIstoPlaylist(playlistId, [ songID ])
 
 if __name__ == "__main__":
     main()
