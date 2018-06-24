@@ -1,10 +1,10 @@
 import sys
 import plistlib
+import pprint
 
 iTunes2spotifyMapping = None
 
-def itunesDict2python(playlistFile):
-
+def itunesXML2PythonDict(playlistFile):
     root = plistlib.readPlist(playlistFile)
     tracks = root["Tracks"]
     playlist = root["Playlists"][0]["Playlist Items"]
@@ -22,9 +22,14 @@ def itunesDict2python(playlistFile):
 
     return playlistArr
 
+def iTunesXML2PlaylistName(playlistFile):
+    root = plistlib.readPlist(playlistFile)
+    playlistName = root['Playlists'][0]['Name']
+    return playlistName
+
+
 def main():
-    p = itunesDict2python("liveinlondon.xml")
-    print p
+    p = iTunesXML2PlaylistName("liveinlondon.xml")
 
 if __name__ == "__main__":
     main()

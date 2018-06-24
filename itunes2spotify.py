@@ -14,7 +14,12 @@ iTunes2spotifyMapping = {"Name": "track", "Artist": "artist", "Album": "album"}
 spotifyFunctions.iTunes2spotifyMapping = iTunes2spotifyMapping
 itunesFunctions.iTunes2spotifyMapping = iTunes2spotifyMapping
 
+
 def main():
+    playlistName = itunesFunctions.iTunesXML2PlaylistName("liveinlondon.xml")
+    print playlistName
+
+def NOTmain():
     token = spotifyFunctions.getUserToken();
 
     playlistName = "Test " + str(int(time.time()))
