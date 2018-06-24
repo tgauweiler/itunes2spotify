@@ -1,5 +1,6 @@
 import sys
 import pprint
+import time
 import spotipy
 import spotipy.util as util
 
@@ -36,22 +37,29 @@ def trackDict2SpotifySearchString(trackDict):
 
 
 def findSpotifyURI(trackDict):
+    # TODO: Some cachine here just in case it shits the bed mid-script
     searchString = trackDict2SpotifySearchString(trackDict)
     results = spotifyObject.search(q=searchString, type='track')
     return results['tracks']['items'][0]['uri']
 
 def createPlaylist(playListName):
-    spotifyObject.user_playlist_create(username, playListName, public=False)
+    playlistObject = spotifyObject.user_playlist_create(username, playListName, public=False)
+    return playlistObject["id"]
 
-def addSpotifyURItoPlaylist(spotifyURI, playlistName):
-    Null
-
+def addSpotifyURIstoPlaylist(playlistID, songIDs):
+    results = spotifyObject.user_playlist_add_tracks(username, playlistID, songIDs)
+    pprint.pprint( results )
 
 def main():
     token = getUserToken();
+
+    playlistName = "Test " + str(int(time.time()))
+    print playlistName
+    playlistId = createPlaylist(playlistName)
+
     testDict = {'album': 'Live In London', 'track': 'Dance Me To The End Of Love', 'artist': 'Leonard Cohen'}
-    pprint.pprint( findSpotifyURI(testDict) )
-    createPlaylist("Test1")
+    songID = findSpotifyURI(testDict)
+    addSpotifyURIstoPlaylist(playlistId, [ songID ])
 
 if __name__ == "__main__":
     main()
