@@ -3,13 +3,16 @@ import pprint
 import time
 
 import spotifyFunctions
+import itunesFunctions
 
 spotifyObject = None
 username = ""
 
+
 iTunes2spotifyMapping = {"Name": "track", "Artist": "artist", "Album": "album"}
 # Shame-cube here
 spotifyFunctions.iTunes2spotifyMapping = iTunes2spotifyMapping
+itunesFunctions.iTunes2spotifyMapping = iTunes2spotifyMapping
 
 def main():
     token = spotifyFunctions.getUserToken();
