@@ -3,6 +3,8 @@ import pprint
 import shelve
 import time
 
+import random
+
 import spotipy
 import spotipy.util as util
 
@@ -12,6 +14,10 @@ iTunes2spotifyMapping = None
 
 uriCache = None
 uriFilename = ".uricache"
+
+maxSongsPerPlaylist = 30
+jankyRateLimitingWaitTime = 2000 # milliseconds
+jankyRateLimitingLastRequestTime = None
 
 def getUserToken():
     global username
@@ -52,16 +58,31 @@ def tracks2SpotifyURIs( tracks ):
     for t in tracks:
         searchString = trackDict2SpotifySearchString(t)
         if searchString in uriCache:
-            print "In cache - %s" % searchString
             results.append(uriCache[searchString])
         else:
-            print "Fetching - %s" % searchString
-            time.sleep(.5)
+            jankyRateLimiting()
             songURI = findSpotifyURI(t)
             results.append(songURI)
             uriCache[ searchString ] = songURI
     uriCache.close()
     return results
+
+# Make sure we don't hammer Spotify
+def jankyRateLimiting():
+    global jankyRateLimitingLastRequestTime
+    now = int(round(time.time() * 1000))
+
+    if jankyRateLimitingLastRequestTime is None:
+        jankyRateLimitingLastRequestTime = now
+        return
+
+    timeSince = now - jankyRateLimitingLastRequestTime
+    jankyRateLimitingLastRequestTime = now
+
+    if timeSince < jankyRateLimitingWaitTime:
+        waitTime = (jankyRateLimitingWaitTime - timeSince)/1000.0
+        print "Waiting %1.2f" % waitTime
+        time.sleep( waitTime )
 
 
 def findSpotifyURI(trackDict):
@@ -69,10 +90,11 @@ def findSpotifyURI(trackDict):
     results = spotifyObject.search(q=searchString, type='track')
     return results['tracks']['items'][0]['uri']
 
-def createPlaylist(playListName):
-    playlistObject = spotifyObject.user_playlist_create(username, playListName, public=False)
+def createPlaylist(PlaylistName):
+    playlistObject = spotifyObject.user_playlist_create(username, PlaylistName, public=False)
     return playlistObject["id"]
 
-def addSpotifyURIstoPlaylist(playlistID, songIDs):
-    results = spotifyObject.user_playlist_add_tracks(username, playlistID, songIDs)
+def addSpotifyURIstoPlaylist(playlistName, songIds):
+    playlistId = createPlaylist(playlistName)
+    results = spotifyObject.user_playlist_add_tracks(username, playlistId, songIds)
     pprint.pprint( results )
