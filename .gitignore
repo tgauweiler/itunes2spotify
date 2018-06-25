@@ -3,3 +3,4 @@ spotify.env
 liveinlondon.xml
 *.pyc
 .uricache
+.tags
