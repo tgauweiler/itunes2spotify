@@ -5,10 +5,6 @@ import time
 import spotifyFunctions
 import itunesFunctions
 
-spotifyObject = None
-username = ""
-
-
 iTunes2spotifyMapping = {"Name": "track", "Artist": "artist", "Album": "album"}
 # Shame-cube here
 spotifyFunctions.iTunes2spotifyMapping = iTunes2spotifyMapping
@@ -19,9 +15,7 @@ def main():
     playlistName = itunesFunctions.iTunesXML2PlaylistName("liveinlondon.xml")
     tracks = itunesFunctions.itunesXML2PythonDict("liveinlondon.xml")
 
-    token = spotifyFunctions.getUserToken();
-    songURIs = spotifyFunctions.tracks2SpotifyURIs(tracks)
-    pprint.pprint(songURIs)
+    spotifyFunctions.addTracksToPlaylist(playlistName, tracks)
     # playlistId = spotifyFunctions.createPlaylist(playlistName)
     # songID = spotifyFunctions.findSpotifyURI(testDict)
     # spotifyFunctions.addSpotifyURIstoPlaylist(playlistId, [ songID ])
