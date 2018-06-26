@@ -16,7 +16,7 @@ uriCache = None
 uriFilename = ".uricache"
 
 maxSongsPerPlaylist = 30
-jankyRateLimitingWaitTime = 2000 # milliseconds
+jankyRateLimitingWaitTime = 500 # milliseconds
 jankyRateLimitingLastRequestTime = None
 
 def getUserToken():
@@ -88,13 +88,23 @@ def jankyRateLimiting():
 def findSpotifyURI(trackDict):
     searchString = trackDict2SpotifySearchString(trackDict)
     results = spotifyObject.search(q=searchString, type='track')
+    # TODO: If the song isn't found
     return results['tracks']['items'][0]['uri']
 
-def createPlaylist(PlaylistName):
-    playlistObject = spotifyObject.user_playlist_create(username, PlaylistName, public=False)
+def createPlaylist(playlistName):
+    playlistName += " " + str(int(time.time()))
+    print "Created playlist '%s'" % playlistName
+    playlistObject = spotifyObject.user_playlist_create(username, playlistName, public=False)
     return playlistObject["id"]
 
-def addSpotifyURIstoPlaylist(playlistName, songIds):
-    playlistId = createPlaylist(playlistName)
-    results = spotifyObject.user_playlist_add_tracks(username, playlistId, songIds)
+def addSpotifyURIstoPlaylist(playlistId, songUris):
+    results = spotifyObject.user_playlist_add_tracks(username, playlistId, songUris)
     pprint.pprint( results )
+
+
+def addTracksToPlaylist(playlistName, tracks):
+    getUserToken()
+    songUris = tracks2SpotifyURIs(tracks)
+    playlistId = createPlaylist(playlistName)
+
+    addSpotifyURIstoPlaylist(playlistId, songUris)
