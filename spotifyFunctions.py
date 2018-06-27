@@ -15,7 +15,7 @@ iTunes2spotifyMapping = None
 uriCache = None
 uriFilename = ".uricache"
 
-maxSongsPerPlaylist = 30
+maxSongsPerAddTracksCall = 20
 jankyRateLimitingWaitTime = 500 # milliseconds
 jankyRateLimitingLastRequestTime = None
 
@@ -97,10 +97,13 @@ def createPlaylist(playlistName):
     playlistObject = spotifyObject.user_playlist_create(username, playlistName, public=False)
     return playlistObject["id"]
 
-def addSpotifyURIstoPlaylist(playlistId, songUris):
-    results = spotifyObject.user_playlist_add_tracks(username, playlistId, songUris)
-    pprint.pprint( results )
+def chunker(seq, size):
+    return (seq[pos:pos + size] for pos in xrange(0, len(seq), size))
 
+def addSpotifyURIstoPlaylist(playlistId, songUris):
+    for group in chunker(songUris, maxSongsPerAddTracksCall):
+            jankyRateLimiting()
+            results = spotifyObject.user_playlist_add_tracks(username, playlistId, group)
 
 def addTracksToPlaylist(playlistName, tracks):
     getUserToken()
