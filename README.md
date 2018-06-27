@@ -19,8 +19,7 @@ They *removed* the ability to import iTunes playlists.
 Meaning, they did all the hard work of making it all work, then decided to
 throw it out.
 
-I assume they have enough money, as they no longer want to make it easy
-for user's to give it to them.
+I assume they have enough money, as they made it hard for users to give it to them.
 
 I saw they had an API which basically allowed of it.  Apple can
 export playlists in XML.  I'd say awful XML, but that's redundant.  
