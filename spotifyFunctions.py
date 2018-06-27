@@ -110,6 +110,6 @@ def addSpotifyURIstoPlaylist(playlistId, songUris):
 def addTracksToPlaylist(playlistName, tracks):
     getUserToken()
     songUris = tracks2SpotifyURIs(tracks)
-    #playlistId = createPlaylist(playlistName)
+    playlistId = createPlaylist(playlistName)
 
-    #addSpotifyURIstoPlaylist(playlistId, songUris)
+    addSpotifyURIstoPlaylist(playlistId, songUris)
