@@ -22,12 +22,6 @@ jankyRateLimitingLastRequestTime = None
 def getUserToken():
     global username
 
-    if len(sys.argv) > 1:
-        username = sys.argv[1]
-    else:
-        print "Usage: %s username" % (sys.argv[0],)
-        sys.exit()
-
     scope = 'user-library-read playlist-modify-private'
     token = util.prompt_for_user_token(username, scope)
 
@@ -56,7 +50,8 @@ def tracks2SpotifyURIs( tracks ):
 
     results = []
     for t in tracks:
-        searchString = trackDict2SpotifySearchString(t)
+        s = trackDict2SpotifySearchString(t)
+        searchString = s.encode('ascii','ignore')
         if searchString in uriCache:
             results.append(uriCache[searchString])
         else:
