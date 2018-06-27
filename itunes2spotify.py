@@ -11,8 +11,15 @@ spotifyFunctions.iTunes2spotifyMapping = iTunes2spotifyMapping
 itunesFunctions.iTunes2spotifyMapping = iTunes2spotifyMapping
 
 def main():
-    playlistName = itunesFunctions.iTunesXML2PlaylistName("liveinlondon.xml")
-    tracks = itunesFunctions.itunesXML2PythonDict("liveinlondon.xml")
+    if len(sys.argv) > 2:
+        spotifyFunctions.username = sys.argv[1]
+        playlistFilename = sys.argv[2]
+    else:
+        print "Usage: %s username playlist.xml" % (sys.argv[0],)
+        sys.exit()
+
+    playlistName = itunesFunctions.iTunesXML2PlaylistName(playlistFilename)
+    tracks = itunesFunctions.itunesXML2PythonDict(playlistFilename)
 
     spotifyFunctions.addTracksToPlaylist(playlistName, tracks)
 
