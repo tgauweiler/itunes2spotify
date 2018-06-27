@@ -62,8 +62,9 @@ def tracks2SpotifyURIs( tracks ):
         else:
             jankyRateLimiting()
             songURI = findSpotifyURI(t)
-            results.append(songURI)
-            uriCache[ searchString ] = songURI
+            if songURI is not None:
+                results.append(songURI)
+                uriCache[ searchString ] = songURI
     uriCache.close()
     return results
 
@@ -81,14 +82,15 @@ def jankyRateLimiting():
 
     if timeSince < jankyRateLimitingWaitTime:
         waitTime = (jankyRateLimitingWaitTime - timeSince)/1000.0
-        print "Waiting %1.2f" % waitTime
         time.sleep( waitTime )
 
 
 def findSpotifyURI(trackDict):
     searchString = trackDict2SpotifySearchString(trackDict)
     results = spotifyObject.search(q=searchString, type='track')
-    # TODO: If the song isn't found
+    if results['tracks']['total'] == 0:
+        print "Couldn't find '%s'" % searchString
+        return None
     return results['tracks']['items'][0]['uri']
 
 def createPlaylist(playlistName):
@@ -102,12 +104,12 @@ def chunker(seq, size):
 
 def addSpotifyURIstoPlaylist(playlistId, songUris):
     for group in chunker(songUris, maxSongsPerAddTracksCall):
-            jankyRateLimiting()
-            results = spotifyObject.user_playlist_add_tracks(username, playlistId, group)
+        jankyRateLimiting()
+        results = spotifyObject.user_playlist_add_tracks(username, playlistId, group)
 
 def addTracksToPlaylist(playlistName, tracks):
     getUserToken()
     songUris = tracks2SpotifyURIs(tracks)
-    playlistId = createPlaylist(playlistName)
+    #playlistId = createPlaylist(playlistName)
 
-    addSpotifyURIstoPlaylist(playlistId, songUris)
+    #addSpotifyURIstoPlaylist(playlistId, songUris)
