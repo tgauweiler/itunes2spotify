@@ -16,7 +16,7 @@ uriCache = None
 uriFilename = ".uricache"
 
 maxSongsPerAddTracksCall = 20
-jankyRateLimitingWaitTime = 500 # milliseconds
+jankyRateLimitingWaitTime = 2000 # milliseconds
 jankyRateLimitingLastRequestTime = None
 
 def getUserToken():
@@ -39,7 +39,8 @@ def trackDict2SpotifySearchString(trackDict):
     for ituneKey, spotifyKey in iTunes2spotifyMapping.items():
         if spotifyKey in trackDict:
             s += spotifyKey + ':"' + trackDict[spotifyKey] + '" '
-    return s
+    searchString = s.encode('ascii','ignore')
+    return searchString
 
 # Check if we already have the URI.  When we don't retreive, cache, while
 # rate-limiting so Spotify doesn't get cranky
@@ -50,8 +51,7 @@ def tracks2SpotifyURIs( tracks ):
 
     results = []
     for t in tracks:
-        s = trackDict2SpotifySearchString(t)
-        searchString = s.encode('ascii','ignore')
+        searchString = trackDict2SpotifySearchString(t)
         if searchString in uriCache:
             results.append(uriCache[searchString])
         else:
@@ -59,7 +59,7 @@ def tracks2SpotifyURIs( tracks ):
             songURI = findSpotifyURI(t)
             if songURI is not None:
                 results.append(songURI)
-                uriCache[ searchString ] = songURI
+                uriCache[searchString] = songURI
     uriCache.close()
     return results
 
@@ -77,19 +77,24 @@ def jankyRateLimiting():
 
     if timeSince < jankyRateLimitingWaitTime:
         waitTime = (jankyRateLimitingWaitTime - timeSince)/1000.0
+        print "Waiting %2.3f" % waitTime
         time.sleep( waitTime )
 
 
 def findSpotifyURI(trackDict):
     searchString = trackDict2SpotifySearchString(trackDict)
-    results = spotifyObject.search(q=searchString, type='track')
+    print "Looking for '%s'..." % searchString
+    try:
+        results = spotifyObject.search(q=searchString, type='track')
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+        return None
     if results['tracks']['total'] == 0:
-        print "Couldn't find '%s'" % searchString
+        print "MISSING: Couldn't find '%s'" % searchString
         return None
     return results['tracks']['items'][0]['uri']
 
 def createPlaylist(playlistName):
-    playlistName += " " + str(int(time.time()))
     print "Created playlist '%s'" % playlistName
     playlistObject = spotifyObject.user_playlist_create(username, playlistName, public=False)
     return playlistObject["id"]
@@ -100,6 +105,7 @@ def chunker(seq, size):
 def addSpotifyURIstoPlaylist(playlistId, songUris):
     for group in chunker(songUris, maxSongsPerAddTracksCall):
         jankyRateLimiting()
+        print "Adding tracks to playlist..."
         results = spotifyObject.user_playlist_add_tracks(username, playlistId, group)
 
 def addTracksToPlaylist(playlistName, tracks):
