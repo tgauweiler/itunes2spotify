@@ -53,18 +53,36 @@ def tracks2SpotifyURIs( tracks ):
 
     results = []
     for t in tracks:
-        searchString = trackDict2SpotifySearchString(t)
-        if searchString in uriCache:
-            results.append(uriCache[searchString])
-        else:
-            jankyRateLimiting()
-            songURI = findSpotifyURI(t)
-            if songURI is not None:
-                results.append(songURI)
-                uriCache[searchString] = songURI
-                uriCache.sync()
+        ## Attempt to search by all criteria
+        songURI = track2SpotifyURIs(t, uriCache)
+
+        ## Attempt to search by just track + Artist
+        if songURI is None:
+            t2 = t
+            t2.pop('album')
+            searchString = trackDict2SpotifySearchString(t2)
+            songURI = track2SpotifyURIs(t2, uriCache)
+
+        if songURI is not None:
+            results.append(songURI)
+            uriCache.sync()
+
     uriCache.close()
     return results
+
+def track2SpotifyURIs(track, cache):
+    searchString = trackDict2SpotifySearchString(track)
+    songURI = None
+    if searchString in cache:
+        songURI = cache[searchString]
+        return
+
+    jankyRateLimiting()
+    songURI = findSpotifyURI(track)
+    if songURI is not None:
+        cache[searchString] = songURI
+
+    return songURI
 
 # Make sure we don't hammer Spotify
 def jankyRateLimiting():
@@ -91,10 +109,10 @@ def findSpotifyURI(trackDict):
         results = spotifyObject.search(q=searchString, type='track')
     except:
         print("Unexpected error:", sys.exc_info()[0])
-        print "MISSING: Couldn't find '%s'" % searchString
+        print "E: MISSING: Couldn't find '%s'" % searchString
         return None
     if results['tracks']['total'] == 0:
-        print "MISSING: Couldn't find '%s'" % searchString
+        print "E: MISSING: Couldn't find '%s'" % searchString
         return None
     return results['tracks']['items'][0]['uri']
 
@@ -110,14 +128,15 @@ def addSpotifyURIstoPlaylist(playlistId, songUris):
     for group in chunker(songUris, maxSongsPerAddTracksCall):
         results = None
         attempts = 0
-        while attempts++ < maxRetryAttempts:
+        while attempts < maxRetryAttempts:
+            attempts += 1
             jankyRateLimiting()
             print "Adding tracks to playlist (%d)..." % attempts
             try:
                 results = spotifyObject.user_playlist_add_tracks(username, playlistId, group)
                 break
             except:
-                print("Unexpected error:", sys.exc_info()[0])
+                print("E: Unexpected error:", sys.exc_info()[0])
 
 def addTracksToPlaylist(playlistName, tracks):
     getUserToken()
