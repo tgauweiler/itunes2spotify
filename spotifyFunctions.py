@@ -55,16 +55,22 @@ def tracks2SpotifyURIs( tracks ):
     for t in tracks:
         ## Attempt to search by all criteria
         songURI = track2SpotifyURIs(t, uriCache)
+        searchString = trackDict2SpotifySearchString(t)
 
         ## Attempt to search by just track + Artist
         if songURI is None:
             t2 = t
             t2.pop('album')
             songURI = track2SpotifyURIs(t2, uriCache)
+            if songURI is not None:
+                print "I: Fallback on '%s'" % searchString
 
         if songURI is not None:
             results.append(songURI)
             uriCache.sync()
+        else:
+            print "E: MISSING: Couldn't find '%s'" % searchString
+
 
     uriCache.close()
     return results
@@ -114,7 +120,6 @@ def findSpotifyURI(trackDict):
             return None
 
     if results['tracks']['total'] == 0:
-        print "E: MISSING: Couldn't find '%s'" % searchString
         return None
     return results['tracks']['items'][0]['uri']
 
