@@ -60,7 +60,6 @@ def tracks2SpotifyURIs( tracks ):
         if songURI is None:
             t2 = t
             t2.pop('album')
-            searchString = trackDict2SpotifySearchString(t2)
             songURI = track2SpotifyURIs(t2, uriCache)
 
         if songURI is not None:
@@ -71,11 +70,11 @@ def tracks2SpotifyURIs( tracks ):
     return results
 
 def track2SpotifyURIs(track, cache):
-    searchString = trackDict2SpotifySearchString(track)
     songURI = None
+    searchString = trackDict2SpotifySearchString(track)
     if searchString in cache:
         songURI = cache[searchString]
-        return
+        return songURI
 
     jankyRateLimiting()
     songURI = findSpotifyURI(track)
@@ -104,13 +103,17 @@ def jankyRateLimiting():
 
 def findSpotifyURI(trackDict):
     searchString = trackDict2SpotifySearchString(trackDict)
-    print "Looking for '%s'..." % searchString
-    try:
-        results = spotifyObject.search(q=searchString, type='track')
-    except:
-        print("Unexpected error:", sys.exc_info()[0])
-        print "E: MISSING: Couldn't find '%s'" % searchString
-        return None
+    attempts = 0
+    while attempts < maxRetryAttempts:
+        attempts += 1
+        print "Looking for '%s'... (%d)" % (searchString, attempts)
+        try:
+            results = spotifyObject.search(q=searchString, type='track')
+            break
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            return None
+
     if results['tracks']['total'] == 0:
         print "E: MISSING: Couldn't find '%s'" % searchString
         return None
