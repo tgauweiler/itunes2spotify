@@ -97,7 +97,6 @@ def jankyRateLimiting():
 
     if timeSince < jankyRateLimitingWaitTime:
         waitTime = (jankyRateLimitingWaitTime - timeSince)/1000.0
-        print "Waiting %2.3f" % waitTime
         time.sleep( waitTime )
 
 
