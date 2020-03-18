@@ -1,8 +1,9 @@
 import sys
 import plistlib
-import pprint
+import logging
 
 iTunes2spotifyMapping = None
+
 
 def itunesXML2PythonDict(playlistFile):
     root = plistlib.readPlist(playlistFile)
@@ -13,14 +14,15 @@ def itunesXML2PythonDict(playlistFile):
 
     for num, trackDict in enumerate(playlist):
         trackID = str(trackDict["Track ID"])
-        simpleTrackDict = {};
-        for key, value in iTunes2spotifyMapping.iteritems():
+        simpleTrackDict = {}
+        for key, value in iTunes2spotifyMapping.items():
             simpleTrackDict[value] = ""
             if key in tracks[trackID]:
                 simpleTrackDict[value] = tracks[trackID][key]
         playlistArr.append(simpleTrackDict)
 
     return playlistArr
+
 
 def iTunesXML2PlaylistName(playlistFile):
     root = plistlib.readPlist(playlistFile)
@@ -30,6 +32,7 @@ def iTunesXML2PlaylistName(playlistFile):
 
 def main():
     p = iTunesXML2PlaylistName("liveinlondon.xml")
+
 
 if __name__ == "__main__":
     main()
