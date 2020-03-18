@@ -3,9 +3,9 @@
 Migrate an iTunes playlist to Spotify.
 
 1. Create a new [Spotify Application](https://developer.spotify.com/dashboard/applications).
-2. Create a callback url for it (doesn't have to be really callable. I used ``https://localhost/callback).
+2. Create a callback url for it (doesn't have to be really callable. I used `https://localhost/callback`).
 3. Get the client id and client secret for it.
-3. Set the enviroment varibales:
+3. Set the environment variables:
 
 ```sh
 export SPOTIPY_CLIENT_ID='xxxxx'
