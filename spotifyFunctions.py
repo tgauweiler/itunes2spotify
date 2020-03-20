@@ -19,6 +19,8 @@ jankyRateLimitingWaitTime = 2000  # milliseconds
 jankyRateLimitingLastRequestTime = None
 
 maxRetryAttempts = 3
+totalSongs = 0
+totalSongsNotFound = 0
 
 
 def getUserToken():
@@ -31,7 +33,7 @@ def getUserToken():
     if token:
         spotifyObject = spotipy.Spotify(auth=token)
     else:
-        logging.error("Can't get token for", username)
+        logging.error(f"Can't get token for {username}")
         sys.exit()
 
     return token
@@ -51,12 +53,13 @@ def trackDict2SpotifySearchString(trackDict):
 
 
 def tracks2SpotifyURIs(tracks):
-    global uriCache, uriFilename
+    global uriCache, uriFilename, totalSongs, totalSongsNotFound
     if uriCache is None:
         uriCache = shelve.open(uriFilename)
 
     results = []
     for t in tracks:
+        totalSongs += 1
         # Attempt to search by all criteria
         songURI = track2SpotifyURIs(t, uriCache)
         searchString = trackDict2SpotifySearchString(t)
@@ -73,6 +76,7 @@ def tracks2SpotifyURIs(tracks):
             results.append(songURI)
             uriCache.sync()
         else:
+            totalSongsNotFound += 1
             logging.error("MISSING: Couldn't find '%s'" % searchString)
 
     uriCache.close()
@@ -117,7 +121,7 @@ def findSpotifyURI(trackDict):
     attempts = 0
     while attempts < maxRetryAttempts:
         attempts += 1
-        logging.info("Looking for '%s'... (%d)" % (searchString, attempts))
+        logging.debug("Looking for '%s'... (%d)" % (searchString, attempts))
         try:
             results = spotifyObject.search(q=searchString, type='track')
             break
@@ -147,7 +151,7 @@ def addSpotifyURIstoPlaylist(playlistId, songUris):
         while attempts < maxRetryAttempts:
             attempts += 1
             jankyRateLimiting()
-            logging.info("Adding tracks to playlist (%d)..." % attempts)
+            logging.info("Adding %d tracks to playlist (%d)...", len(group), attempts)
             try:
                 results = spotifyObject.user_playlist_add_tracks(username, playlistId, group)
                 break
@@ -156,8 +160,10 @@ def addSpotifyURIstoPlaylist(playlistId, songUris):
 
 
 def addTracksToPlaylist(playlistName, tracks):
+    global totalSongs, totalSongsNotFound
     getUserToken()
     songUris = tracks2SpotifyURIs(tracks)
+    logging.info(f"#Songs: {totalSongs} with not found #songs: {totalSongsNotFound}")
     playlistId = createPlaylist(playlistName)
 
     addSpotifyURIstoPlaylist(playlistId, songUris)
