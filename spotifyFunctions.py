@@ -24,19 +24,19 @@ totalSongsNotFound = 0
 
 
 def getUserToken():
-    global username
+    global username, spotifyObject
 
     scope = 'user-library-read playlist-modify-private'
-    token = util.prompt_for_user_token(username, scope)
+    # token = util.prompt_for_user_token(username, scope)
 
-    global spotifyObject
-    if token:
-        spotifyObject = spotipy.Spotify(auth=token)
-    else:
-        logging.error(f"Can't get token for {username}")
-        sys.exit()
+    sp_oauth = spotipy.SpotifyOAuth(scope=scope, username=username)
+    spotifyObject = spotipy.Spotify(auth_manager=sp_oauth)
 
-    return token
+    # if token:
+    #     spotifyObject = spotipy.Spotify(auth=token)
+    # else:
+    #     logging.error(f"Can't get token for {username}")
+    #     sys.exit()
 
 
 def trackDict2SpotifySearchString(trackDict):
